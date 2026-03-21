@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  // Hardcoded to strictly point to the LIVE Render Backend to bypass Vite proxy bugs.
+  baseURL: 'https://click2website-backend.onrender.com/api',
   headers: { 'Content-Type': 'application/json' },
 });
 

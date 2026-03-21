@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
 import Token from '../models/Token.js';
+import { sendWelcomeEmail } from '../cron.js';
 
 // Allowed Firebase Admin Email
 const ADMIN_EMAIL = 'sasindragandla@gmail.com';
@@ -31,29 +32,8 @@ export const register = async (req, res) => {
 
     const user = await User.create({ name, email, password });
 
-    // Send Welcome Email
-    if (process.env.PLATFORM_EMAIL && process.env.PLATFORM_EMAIL_PASSWORD) {
-      try {
-        await transporter.sendMail({
-          from: `"Click2Website Team" <${process.env.PLATFORM_EMAIL}>`,
-          to: user.email,
-          subject: '🎉 Welcome to Click2Website! Let\'s build your dream website.',
-          html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-              <h2>Hi Welcome, ${user.name}! 🚀</h2>
-              <p>You have successfully registered on our website.</p>
-              <p>You are very close to getting your requirement website! Our team will review your details and get in touch with you shortly to build your dream project.</p>
-              <br/><br/>
-              <p>Cheers,<br/>The Web Development Team</p>
-              <img src="${process.env.API_URL || 'http://localhost:5000'}/api/auth/track-welcome/${user._id}" width="1" height="1" alt="" />
-            </div>
-          `,
-        });
-        console.log(`Welcome email sent to ${user.email}`);
-      } catch (emailErr) {
-        console.error('Failed to send welcome email:', emailErr.message);
-      }
-    }
+    // Send the professional branded Welcome Email (non-blocking)
+    sendWelcomeEmail(user).catch(console.error);
 
     const accessToken  = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);

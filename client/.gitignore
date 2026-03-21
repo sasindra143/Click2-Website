@@ -1,7 +1,24 @@
+<<<<<<< HEAD
+=======
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Build Output
+dist/
+dist-ssr/
+*.local
+
+>>>>>>> 47a9a6a4d57fcdcf897f75b5b9c52491cecaa634
 # Logs
 logs
 *.log
 npm-debug.log*
+<<<<<<< HEAD
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
@@ -22,3 +39,22 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+=======
+
+# Server specifics
+server/.env
+server/node_modules/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+
+.env
+server/.env".env" 
+".env.local" 
+".env.*.local" 
+>>>>>>> 47a9a6a4d57fcdcf897f75b5b9c52491cecaa634

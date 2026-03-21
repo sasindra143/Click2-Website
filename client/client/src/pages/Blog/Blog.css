@@ -1,0 +1,89 @@
+/* ── Blog Page ── */
+.blog-section .section-inner { padding-top: 2rem; }
+
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.blog-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 1.75rem;
+  position: relative;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.blog-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(167,139,250,0.35);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+}
+
+.blog-tag {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: rgba(167,139,250,0.12);
+  border: 1px solid rgba(167,139,250,0.25);
+  color: #a78bfa;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.blog-icon { font-size: 1.5rem; }
+
+.blog-card h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.4;
+  padding-right: 3rem;
+}
+
+.blog-card p {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.blog-meta {
+  display: flex;
+  gap: 0.9rem;
+  font-size: 0.775rem;
+  color: rgba(255,255,255,0.35);
+  flex-wrap: wrap;
+}
+
+.blog-read-btn {
+  background: none;
+  border: none;
+  color: #a78bfa;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: color 0.2s;
+}
+
+.blog-read-btn:hover { color: #c4b5fd; }
+
+/* Shared reuses */
+.page-hero, .section-inner, .section-tag, .section-header, .gradient-text {
+  /* defined in Services.css, imported via App */
+}
+
+@media (max-width: 600px) {
+  .blog-grid { grid-template-columns: 1fr; }
+}

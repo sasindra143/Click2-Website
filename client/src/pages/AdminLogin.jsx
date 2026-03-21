@@ -32,9 +32,13 @@ export default function AdminLogin() {
     } catch (err) {
       console.error(err);
       if (err.response?.data?.message) {
+        // Backend Error string (e.g 403 Forbidden)
         setError(err.response.data.message);
       } else if (err.code === 'auth/popup-closed-by-user') {
         setError('Login cancelled.');
+      } else if (err.message === 'Network Error' || err.code === 'ERR_NETWORK') {
+        // Explicitly catch backend offline/network errors
+        setError('Backend Unreachable: The server could not be reached.');
       } else {
         // Expose the EXACT error message so the Admin knows what is wrong in the Firebase config
         setError(`Firebase Error: ${err.message}`);

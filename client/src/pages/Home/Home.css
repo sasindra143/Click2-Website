@@ -11,11 +11,20 @@
   padding: 7rem 1.5rem 5rem;
   max-width: 1200px;
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
 }
 
+/* Wraps the full-width background — stays inside .hero-bg-wrapper */
+.hero-bg-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 0;
+}
 .hero-bg {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: radial-gradient(ellipse at 20% 50%, rgba(123,97,255,0.15) 0%, transparent 60%),
               radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.12) 0%, transparent 55%),
@@ -512,30 +521,58 @@
   .spec-grid { grid-template-columns: 1fr; }
   .testimonials-grid { grid-template-columns: 1fr; }
   .features-grid { grid-template-columns: repeat(2, 1fr); }
-  .hero { flex-direction: column; text-align: center; }
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 6rem 1.5rem 4rem;
+  }
   .hero-content { max-width: 100%; }
   .hero-btns { justify-content: center; }
   .hero-trust { justify-content: center; }
-  .hero-visual { max-width: 100%; }
+  .hero-visual { max-width: 100%; width: 100%; }
+}
+
+@media (max-width: 900px) {
+  /* Hide floating cards that cause layer issues on mobile */
+  .hero-float { display: none !important; }
+  .hero-visual {
+    max-width: 400px;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 768px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .steps-row { grid-template-columns: 1fr; }
   .cta-card { padding: 2.5rem 1.5rem; }
+  .spec-grid { grid-template-columns: 1fr; }
+  .spec-item { padding: 2rem 1.5rem; }
 }
 
 @media (max-width: 600px) {
   .features-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .hero { padding: 6rem 1rem 3rem; }
-  .hero-content h1 { font-size: 2.25rem; }
-  .hero-btns { flex-direction: column; width: 100%; }
-  .cta-primary, .cta-secondary { width: 100%; justify-content: center; }
+  .hero {
+    padding: 5.5rem 1rem 3rem;
+    min-height: auto;
+  }
+  .hero-content h1 { font-size: 1.85rem; line-height: 1.2; }
+  .hero-btns {
+    flex-direction: column;
+    width: 100%;
+  }
+  .cta-primary, .cta-secondary {
+    width: 100%;
+    justify-content: center;
+  }
   .section-inner { padding: 3rem 1rem; }
+  .cta-card { padding: 2rem 1.2rem; }
+  .testimonial-card { padding: 1.75rem 1.25rem; }
+  .step-card { padding: 1.5rem 1.25rem; }
 }
 
 @media (max-width: 480px) {
   .hero-trust { display: none; }
   .stat-item strong { font-size: 1.8rem; }
+  .hero-visual { display: none; }
 }
