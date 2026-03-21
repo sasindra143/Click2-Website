@@ -29,4 +29,6 @@ server/node_modules/
 
 
 .env
-server/.env
+server/.env".env" 
+".env.local" 
+".env.*.local" 
