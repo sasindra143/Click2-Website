@@ -33,28 +33,32 @@ if (process.env.CLIENT_URL) {
   allowedOrigins.push(process.env.CLIENT_URL);
 }
 
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control'],
+};
+
 // CORS middleware
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like Postman)
-      if (!origin) return callback(null, true);
+app.use(cors(corsOptions));
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log('❌ CORS blocked:', origin);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+// 🔥 IMPORTANT: Handle preflight requests properly with the same options
+app.options('*', cors(corsOptions));
 
-// 🔥 IMPORTANT: Handle preflight requests
-app.options('*', cors());
+// Prevent caching of CORS preflight responses to avoid mismatch for different origins
+app.use((req, res, next) => {
+  res.header('Vary', 'Origin');
+  next();
+});
 
 // ─────────────────────────────────────────────
 // Body Parsers
