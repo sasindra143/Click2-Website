@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import gsap from 'gsap';
@@ -148,6 +148,8 @@ export default function Services() {
       <Helmet>
         <title>Services – Click2Website</title>
         <meta name="description" content="Custom web development for hospitals, colleges, businesses, LMS and portfolios. View our pricing plans." />
+        <title>Our Services | Specialized Web Development | Click2Website</title>
+        <meta name="description" content="Explore our specialized web development services for hospitals, colleges, e-learning platforms, and corporate businesses." />
       </Helmet>
 
       <Navbar />

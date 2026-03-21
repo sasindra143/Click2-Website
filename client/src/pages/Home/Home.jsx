@@ -95,12 +95,12 @@ export default function Home() {
   }, { scope: container });
 
   return (
-    <div ref={container} style={{ overflowX: 'hidden' }}>
+    <div className="home-page">
       <Helmet>
-        <title>Click2Website – Professional Web Development Agency</title>
-        <meta name="description" content="Click2Website builds premium websites for hospitals, colleges, businesses, LMS portals, and portfolios." />
+        <title>Click2Website | Best Web Development Agency for Businesses</title>
+        <meta name="description" content="Click2Website creates stunning, high-performance websites with 3D animations for hospitals, colleges, and LMS platforms." />
       </Helmet>
-
+      
       <Navbar />
 
       {/* ── HERO ── */}

@@ -141,4 +141,5 @@
 
 @media (max-width: 768px) {
   .services-grid, .pricing-grid { grid-template-columns: 1fr; }
+  .page-hero { padding: 6rem 1.25rem 3rem; }
 }

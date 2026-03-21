@@ -391,4 +391,14 @@
 @media (max-width: 600px) {
   .features-grid { grid-template-columns: 1fr; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .hero { padding: 6rem 1rem 3rem; }
+  .hero-content h1 { font-size: 2.25rem; }
+  .hero-btns { flex-direction: column; width: 100%; }
+  .cta-primary, .cta-secondary { width: 100%; justify-content: center; }
+  .section-inner { padding: 3rem 1rem; }
+}
+
+@media (max-width: 480px) {
+  .hero-trust { display: none; }
+  .stat-item strong { font-size: 1.8rem; }
 }
