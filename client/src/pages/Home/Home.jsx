@@ -50,6 +50,7 @@ const STATS = [
 
 export default function Home() {
   const container = useRef();
+  const sections = useRef([]);
 
   useGSAP(() => {
     // Hero Elements Animation
@@ -87,6 +88,11 @@ export default function Home() {
       x: -50, opacity: 0, duration: 0.8, stagger: 0.2, ease: 'power3.out'
     });
 
+    gsap.from('.testimonial-card', {
+      scrollTrigger: { trigger: '.testimonials-grid', start: 'top 80%' },
+      y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.2)'
+    });
+
     gsap.from('.cta-card', {
       scrollTrigger: { trigger: '.cta-section', start: 'top 85%' },
       y: 50, opacity: 0, scale: 0.95, duration: 1, ease: 'power3.out'
@@ -95,7 +101,7 @@ export default function Home() {
   }, { scope: container });
 
   return (
-    <div className="home-page">
+    <div className="home-page" ref={container}>
       <Helmet>
         <title>Click2Website | Best Web Development Agency for Businesses</title>
         <meta name="description" content="Click2Website creates stunning, high-performance websites with 3D animations for hospitals, colleges, and LMS platforms." />
@@ -104,7 +110,7 @@ export default function Home() {
       <Navbar />
 
       {/* ── HERO ── */}
-      <section className="hero" id="home">
+      <section className="hero" id="home" ref={(el) => (sections.current[0] = el)}>
         <div className="hero-bg" />
         <div className="hero-content">
           <div className="hero-badge">🚀 Empowering 500+ Businesses Online</div>
@@ -142,8 +148,54 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── OUR SPECIALIZATIONS ── */}
+      <section className="specializations" ref={(el) => (sections.current[1] = el)}>
+        <div className="section-inner">
+          <div className="section-header">
+            <span className="section-tag">Our Core Pillars</span>
+            <h2>Our Specialized <span className="gradient-text">Expertise</span></h2>
+            <p>From architectural core to high-conversion automated marketing systems.</p>
+          </div>
+
+          <div className="spec-grid">
+            <div className="spec-item">
+              <div className="spec-icon">🌐</div>
+              <h3>Web Development</h3>
+              <p>Custom-built, scalable applications optimized for speed and maximum engagement.</p>
+              <ul className="spec-list">
+                <li>React & Next.js Masters</li>
+                <li>Dynamic 3D UI Effects</li>
+                <li>SEO-First Architecture</li>
+              </ul>
+            </div>
+            
+            <div className="spec-item highlighted">
+              <div className="spec-icon">📧</div>
+              <h3>Email Automations</h3>
+              <p>Sophisticated marketing flows and tracking systems that convert leads into loyal clients.</p>
+              <ul className="spec-list">
+                <li>Smart Drip Campaigns</li>
+                <li>Engagement Tracking Pixel</li>
+                <li>Automated Follow-ups</li>
+              </ul>
+            </div>
+
+            <div className="spec-item">
+              <div className="spec-icon">📱</div>
+              <h3>SMS Automations</h3>
+              <p>Direct-to-customer communication systems integrated seamlessly with Twilio.</p>
+              <ul className="spec-list">
+                <li>Instant SMS Alerts</li>
+                <li>Bulk Scheduling Systems</li>
+                <li>Verification Gateways</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── PORTFOLIO (NEW) ── */}
-      <section className="features-section" style={{ background: 'transparent' }} id="portfolio">
+      <section className="features-section" style={{ background: 'transparent' }} id="portfolio" ref={(el) => (sections.current[2] = el)}>
         <div className="section-inner">
           <div className="section-header">
             <span className="section-tag">✨ Our Work</span>
@@ -168,7 +220,7 @@ export default function Home() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section className="features-section" id="features">
+      <section className="features-section" id="features" ref={(el) => (sections.current[3] = el)}>
         <div className="section-inner">
           <div className="section-header">
             <span className="section-tag">💡 Why Click2Website?</span>
@@ -190,7 +242,7 @@ export default function Home() {
       </section>
 
       {/* ── STATS ── */}
-      <section className="stats-section">
+      <section className="stats-section" ref={(el) => (sections.current[4] = el)}>
         <div className="section-inner">
           <div className="stats-row">
             {STATS.map((s) => (
