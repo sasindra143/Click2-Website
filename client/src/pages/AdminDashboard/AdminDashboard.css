@@ -463,3 +463,109 @@
   .admin-stat-label { font-size: 0.7rem; }
   .admin-header h1 { font-size: 1.6rem; }
 }
+
+/* ─── Custom Dialog (replaces browser confirm/alert) ─── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  animation: overlayIn 0.2s ease;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.dialog-box {
+  background: #0f0d1e;
+  border-radius: 20px;
+  padding: 2.5rem 2rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255,255,255,0.08);
+  animation: dialogIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes dialogIn {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Colour accents per dialog type */
+.dialog-confirm { border-top: 3px solid #f59e0b; }
+.dialog-success { border-top: 3px solid #10b981; }
+.dialog-error   { border-top: 3px solid #ef4444; }
+
+.dialog-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.dialog-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #f9fafb;
+  margin-bottom: 0.6rem;
+}
+
+.dialog-message {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  line-height: 1.65;
+  margin-bottom: 1.75rem;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.dialog-btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.dialog-cancel {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #9ca3af;
+}
+
+.dialog-cancel:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+
+.dialog-confirm-btn {
+  background: linear-gradient(135deg, #dc2626, #ef4444);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.35);
+}
+
+.dialog-confirm-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.dialog-confirm-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+
+.dialog-ok {
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  color: #fff;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.dialog-ok:hover { opacity: 0.88; transform: translateY(-1px); }
+
