@@ -15,13 +15,11 @@ export default function AdminLogin() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
+      const idToken = await user.getIdToken();
 
-      // Send Firebase user details to backend to get standard JWT
+      // Send Firebase ID Token to backend for secure verification
       const res = await api.post('/auth/firebase-admin', {
-        email: user.email,
-        displayName: user.displayName,
-        uid: user.uid,
-        photoURL: user.photoURL,
+        idToken
       });
 
       // Backend issued access tokens for Dashboard
