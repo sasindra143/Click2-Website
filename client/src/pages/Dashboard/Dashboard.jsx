@@ -10,7 +10,7 @@ const TABS = [
   { id: 'email', icon: '📧', label: 'Send Email' },
   { id: 'sms', icon: '📲', label: 'Send SMS' },
   { id: 'gmail', icon: '🔗', label: 'Connect Gmail' },
-  { id: 'users', icon: '👥', label: 'Users' },
+  { id: 'profile', icon: '👤', label: 'Profile' },
 ];
 
 /* ─────── mock users for demo ─────── */
@@ -21,7 +21,7 @@ const MOCK_USERS = [
 ];
 
 export default function Dashboard() {
-  const { user, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState('overview');
@@ -34,6 +34,14 @@ export default function Dashboard() {
   const [smsForm, setSmsForm] = useState({ to: '', message: '' });
   const [smsResult, setSmsResult] = useState(null);
   const [smsLoading, setSmsLoading] = useState(false);
+
+  const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '' });
+  const [profileResult, setProfileResult] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) setProfileForm({ name: user.name || '', email: user.email || '', phone: user.phone || '' });
+  }, [user]);
 
   const [users] = useState(MOCK_USERS);
 
@@ -83,6 +91,17 @@ export default function Dashboard() {
     } catch (err) {
       setSmsResult({ ok: false, msg: err.response?.data?.message || 'Failed to send SMS' });
     } finally { setSmsLoading(false); }
+  };
+
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault();
+    setProfileLoading(true); setProfileResult(null);
+    try {
+      await updateProfile(profileForm);
+      setProfileResult({ ok: true, msg: 'Profile updated successfully!' });
+    } catch (err) {
+      setProfileResult({ ok: false, msg: err.response?.data?.message || 'Failed to update profile' });
+    } finally { setProfileLoading(false); }
   };
 
   return (
@@ -186,7 +205,7 @@ export default function Dashboard() {
                       { icon: '📧', label: 'Send Email', tab: 'email' },
                       { icon: '📲', label: 'Send SMS', tab: 'sms' },
                       { icon: '🔗', label: 'Gmail Settings', tab: 'gmail' },
-                      { icon: '👥', label: 'Manage Users', tab: 'users' },
+                      { icon: '👤', label: 'My Profile', tab: 'profile' },
                     ].map(q => (
                       <button key={q.tab} className="db-quick-btn" onClick={() => setTab(q.tab)}>
                         <span>{q.icon}</span>
@@ -305,36 +324,33 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* ══ Users ══ */}
-            {tab === 'users' && (
+            {tab === 'profile' && (
               <div className="db-section">
-                <h1>Users Management 👥</h1>
-                <p className="db-subtitle">View and manage all registered users.</p>
-                <div className="db-table-wrap">
-                  <table className="db-table">
-                    <thead>
-                      <tr>
-                        <th>#</th><th>Name</th><th>Email</th><th>Gmail</th><th>Status</th><th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((u, i) => (
-                        <tr key={u.id}>
-                          <td>{i + 1}</td>
-                          <td><div className="db-user-cell"><div className="db-mini-avatar">{u.name[0]}</div>{u.name}</div></td>
-                          <td>{u.email}</td>
-                          <td><span className={`db-badge ${u.gmail ? 'connected' : 'disconnected'}`}>{u.gmail ? '✓ Connected' : '✗ Not linked'}</span></td>
-                          <td><span className={`db-badge ${u.active ? 'connected' : 'disconnected'}`}>{u.active ? 'Active' : 'Inactive'}</span></td>
-                          <td>
-                            <button className={`db-action-btn ${u.active ? 'deactivate' : 'activate'}`}>
-                              {u.active ? 'Deactivate' : 'Activate'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <h1>My Profile 👤</h1>
+                <p className="db-subtitle">Update your personal information and account email.</p>
+                <form className="db-form" onSubmit={handleProfileUpdate}>
+                  <div className="db-field">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="John Doe" value={profileForm.name}
+                      onChange={e => setProfileForm(p => ({ ...p, name: e.target.value }))} required />
+                  </div>
+                  <div className="db-field">
+                    <label>Account Email</label>
+                    <input type="email" placeholder="you@example.com" value={profileForm.email}
+                      onChange={e => setProfileForm(p => ({ ...p, email: e.target.value }))} required />
+                  </div>
+                  <div className="db-field">
+                    <label>Phone Number (Optional)</label>
+                    <input type="tel" placeholder="+91 9999999999" value={profileForm.phone}
+                      onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))} />
+                  </div>
+                  {profileResult && <div className={`db-result ${profileResult.ok ? 'ok' : 'err'}`}>{profileResult.msg}</div>}
+                  <div className="db-form-actions">
+                    <button type="submit" className="cta-primary" disabled={profileLoading}>
+                      {profileLoading ? 'Saving…' : '💾 Save Changes'}
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
           </div>

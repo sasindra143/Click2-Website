@@ -63,14 +63,19 @@ const AdminDashboard = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [usersRes, statsRes] = await Promise.all([
-        api.get('/admin/users'),
-        api.get('/admin/stats'),
-      ]);
-      setUsersList(usersRes.data);
-      setStats(statsRes.data);
+      // Fetch users independently
+      const usersRes = await api.get('/admin/users');
+      setUsersList(usersRes.data || []);
+      
+      // Fetch stats independently (don't throw if it fails, since it's a new route that might take longer to deploy on Render)
+      try {
+        const statsRes = await api.get('/admin/stats');
+        setStats(statsRes.data);
+      } catch (statsErr) {
+        console.warn('Stats endpoint unavailable yet. Deployment might be in progress.');
+      }
     } catch (err) {
-      setError('Failed to fetch admin data.');
+      setError('Failed to fetch users. Ensure you are logged in as administrator.');
     } finally {
       setLoading(false);
     }

@@ -183,12 +183,18 @@ export const getMe = async (req, res) => {
 /* ── Update Profile ── */
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone, avatar } = req.body;
+    const { name, email, phone, avatar } = req.body;
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    if (email && email !== user.email) {
+      const existing = await User.findOne({ email });
+      if (existing) return res.status(409).json({ message: 'Email is already in use by another account' });
+      user.email = email;
+    }
+
     if (name)   user.name   = name;
-    if (phone)  user.phone  = phone;
+    if (phone !== undefined) user.phone  = phone;
     if (avatar) user.avatar = avatar;
     await user.save();
 
