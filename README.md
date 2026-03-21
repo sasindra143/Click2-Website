@@ -1,92 +1,219 @@
-# 🌐 Click2Website - Premium Web Development Agency
+# 🌐 Click2Website 🚀
 
-![Hero Section](file:///C:/Users/sasin/.gemini/antigravity/brain/0f3431f9-b2ef-4252-a394-e63876ba8ac0/hero_section_1774060790386.png)
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&size=32&duration=3000&pause=1000&color=00F7FF&center=true&vCenter=true&width=900&lines=🚀+Click2Website+-+Premium+Web+Agency;💎+3D+UI+%2B+Modern+Web+Experiences;⚡+High+Performance+%2B+Secure+Systems;🔥+Transforming+Visions+into+Reality" />
+</p>
 
-Welcome to **Click2Website**, a high-end web development agency specializing in immersive, high-performance digital solutions for Hospitals, Colleges, Corporate Businesses, and Personal Brands.
+---
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00F7FF,100:6A00FF&height=200&section=header&text=Click2Website&fontSize=50&fontColor=ffffff&animation=fadeIn&fontAlignY=35"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Live-success?style=for-the-badge&logo=vercel"/>
+  <img src="https://img.shields.io/badge/Frontend-React-blue?style=for-the-badge&logo=react"/>
+  <img src="https://img.shields.io/badge/Backend-Node.js-green?style=for-the-badge&logo=node.js"/>
+  <img src="https://img.shields.io/badge/Database-MongoDB-darkgreen?style=for-the-badge&logo=mongodb"/>
+</p>
+
+---
+
+<p align="center">
+  <img src="https://media.giphy.com/media/f3iwJFOVOwuy7K6FFw/giphy.gif" width="750"/>
+</p>
+
+---
+
+## 🧠 About Click2Website
+
+✨ **Click2Website** is a futuristic web development agency delivering:
+
+* ⚡ High-performance websites
+* 🎨 3D UI / UX experiences
+* 🔐 Secure backend systems
+* 📈 Business automation
+
+🚀 Designed for:
+
+* 🏥 Hospitals
+* 🎓 Colleges
+* 🏢 Corporate Businesses
+* 👤 Personal Brands
 
 ---
 
 ## 🎯 Project Purpose
-**Click2Website** is designed to provide a seamless bridge between complex business requirements and modern web technology. Originally rebranded from MailFlow360, this platform has evolved into a full-scale agency suite that manages:
-- **Client Portfolios**: Showcasing real-world successes.
-- **Automated Engagement**: Marketing automation through email tracking.
-- **Secure Admin Management**: Direct control over user data and platform metrics.
+
+💡 A complete digital agency platform that provides:
+
+* 📁 Portfolio showcase
+* 📧 Automated email engagement
+* 🔐 Admin dashboard control
+
+🔄 Evolved from **MailFlow360 → Click2Website**
 
 ---
 
-## ✨ Features & Animations
+## ✨ Features & 3D Animations
 
-### 🎨 Visual Excellence
-- **GSAP & ScrollTrigger**: Every section features smooth, high-frame-rate reveal animations as you scroll.
-- **3D Parallax Effects**: Interactive card components using `react-parallax-tilt` for a tactile, premium feel.
-- **TypeWriter UI**: Dynamic, animated headlines on the landing page for better user engagement.
-- **Glassmorphism**: A sleek, dark-themed design system with glowing borders and translucent panels.
+### 🎨 Visual Experience
 
-### 🛡️ Secure Infrastructure
-- **Firebase Admin Portal**: Secure `/admin-login` for site administrators using Google Auth.
-- **Role-Based Security**: Automatic redirection and JWT-protected routes based on user roles (`admin` vs `user`).
-- **Profile Customization**: Dynamic Gmail profile pictures synced in the navigation bar.
-
-### 📊 Portfolio Highlights
-![Portfolio Section](file:///C:/Users/sasin/.gemini/antigravity/brain/0f3431f9-b2ef-4252-a394-e63876ba8ac0/portfolio_section_1774060804636.png)
-- **PR Skillverse**: Advanced LMS for tech education.
-- **360 Vertex Solutions**: Corporate agency website.
-- **Vaakya Creations**: Multimedia and art portfolio.
-- **Sasindra Portfolio**: Personal developer showcase.
+* ⚡ GSAP + ScrollTrigger animations
+* 🌀 3D Parallax Tilt Effects
+* ⌨️ Typing Animation UI
+* 🌈 Glassmorphism Design System
 
 ---
 
-## 🛠 Technology Stack
+### 🛡️ Security System
 
-- **Frontend**: React.js, Vite, GSAP, Axios, React Router, Lucide Icons.
-- **Backend**: Node.js, Express, MongoDB/Mongoose, JWT.
-- **APIs**: Gmail API (Nodemailer), Twilio SMS, Firebase Auth.
-- **Scheduling**: Node-Cron for automated 4-hour email follow-ups.
+* 🔐 JWT Authentication
+* 🔥 Firebase Admin Login
+* 👤 Role-Based Access
+* 🖼 Dynamic Profile Avatars
+
+---
+
+<p align="center">
+  <img src="https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif" width="600"/>
+</p>
+
+---
+
+## 📊 Portfolio Highlights
+
+* 🚀 PR Skillverse (LMS Platform)
+* 💼 360 Vertex Solutions
+* 🎨 Vaakya Creations
+* 👨‍💻 Developer Portfolio
+
+---
+
+## 🛠 Tech Stack
+
+<p align="center">
+
+<img src="https://skillicons.dev/icons?i=react,vite,js,html,css,nodejs,express,mongodb,firebase,git,github" />
+
+</p>
 
 ---
 
 ## 📡 API Documentation
 
-### 🔐 Authentication (`/api/auth`)
-- `POST /register`: Create a new user account + send automated welcome email.
-- `POST /login`: Standard JWT login.
-- `POST /firebase-admin`: Secure admin login via Firebase Google Auth.
-- `GET /me`: Get current authenticated user details (incl. avatar).
-- `GET /track-welcome/:id`: Hidden pixel endpoint to track if the Welcome Email was opened.
+### 🔐 Authentication
 
-### 📧 Email & SMS (`/api/email`, `/api/sms`)
-- `POST /email/send`: Send custom emails using Gmail API.
-- `POST /sms/send`: Send SMS notifications via Twilio.
+```
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/firebase-admin
+GET  /api/auth/me
+GET  /api/auth/track-welcome/:id
+```
 
-### 🛠 Admin (`/api/admin`)
-- `GET /admin/users`: Fetch all platform users (Admin Only).
-- `DELETE /admin/users/:id`: Permanently delete a user account.
+---
+
+### 📧 Email & SMS
+
+```
+POST /api/email/send
+POST /api/sms/send
+```
+
+---
+
+### 🛠 Admin
+
+```
+GET    /api/admin/users
+DELETE /api/admin/users/:id
+```
 
 ---
 
 ## 📂 Folder Structure
 
 ```text
-/
-├── client/              # React Frontend (Vite)
-│   ├── src/
-│   │   ├── api/         # Axios Interceptors
-│   │   ├── components/  # Layout Elements (Navbar, Footer)
-│   │   ├── pages/       # Screen Views (Home, Services, etc.)
-│   │   └── styles/      # GSAP & Global CSS
-├── server/              # Express Backend
-│   ├── controllers/     # Business Logic (Logic for Auth, Emails)
-│   ├── models/          # Database Schemas (User, Token)
-│   ├── routes/          # API Route Definitions
-│   └── cron.js          # Background Worker (Marketing Automation)
+📦 Click2Website
+ ┣ 📂 client
+ ┃ ┣ 📂 src
+ ┃ ┃ ┣ 📂 components
+ ┃ ┃ ┣ 📂 pages
+ ┃ ┃ ┣ 📂 api
+ ┃ ┃ ┗ 📂 styles
+ ┣ 📂 server
+ ┃ ┣ 📂 controllers
+ ┃ ┣ 📂 models
+ ┃ ┣ 📂 routes
+ ┃ ┗ 📜 cron.js
 ```
 
 ---
 
 ## 🚀 Installation
 
-1. **Clone the repo.**
-2. **Server Setup**: `npm install` in `/server`. Add `.env` (MONGO_URI, JWT_SECRET, etc.). Run `npm run dev`.
-3. **Client Setup**: `npm install` in `/client`. Run `npm run dev`.
+```bash
+git clone https://github.com/sasindra143/Click2-Website.git
 
-*"Transforming Visions into Digital Reality."* 🚀
+cd server
+npm install
+npm run dev
+
+cd client
+npm install
+npm run dev
+```
+
+---
+
+## 🔐 Environment Setup
+
+```env
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_secret
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_secret
+```
+
+⚠️ Never push `.env` file to GitHub
+
+---
+
+## 🌟 Why This Project Stands Out
+
+* 🚀 Startup-level architecture
+* ⚡ High-speed frontend performance
+* 🔐 Secure backend design
+* 🤖 Automation system
+* 🎯 Real-world business solution
+
+---
+
+## 🤝 Connect With Me
+
+<p align="center">
+  <a href="https://www.linkedin.com/in/sasindra-madduri">
+    <img src="https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin"/>
+  </a>
+
+  <a href="https://www.instagram.com/vertex_solutions06">
+    <img src="https://img.shields.io/badge/Instagram-red?style=for-the-badge&logo=instagram"/>
+  </a>
+</p>
+
+---
+
+## 💬 Final Line
+
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&size=24&duration=3000&pause=1000&color=00FFAA&center=true&vCenter=true&width=700&lines=🚀+Transforming+Visions+into+Digital+Reality" />
+</p>
+
+---
+
+<p align="center">
+  💙 Built with Passion by Sasindra
+</p>
