@@ -32,11 +32,17 @@ export function AuthProvider({ children }) {
     return data;
   };
 
-  const register = async (name, email, password) => {
-    const { data } = await api.post('/auth/register', { name, email, password });
+  const register = async (name, email, password, phone) => {
+    const { data } = await api.post('/auth/register', { name, email, password, phone });
     localStorage.setItem('accessToken', data.accessToken);
     localStorage.setItem('refreshToken', data.refreshToken);
     setUser(data);
+    return data;
+  };
+
+  const updateProfile = async (fields) => {
+    const { data } = await api.put('/auth/profile', fields);
+    setUser((prev) => ({ ...prev, ...data }));
     return data;
   };
 
@@ -57,7 +63,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

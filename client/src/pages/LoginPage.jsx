@@ -42,7 +42,7 @@ export default function LoginPage() {
     try {
       const userData = await login(form.email, form.password);
       if (userData.role === 'admin') navigate('/admin');
-      else navigate('/welcome');
+      else navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Check your credentials.');
     } finally {
@@ -72,7 +72,12 @@ export default function LoginPage() {
               value={form.email} onChange={handleChange} placeholder="you@example.com" />
           </div>
           <div className="field-group">
-            <label htmlFor="password">Password</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label htmlFor="password">Password</label>
+              <Link to="/forgot-password" style={{ fontSize: '0.78rem', color: '#a78bfa', textDecoration: 'none' }}>
+                Forgot Password?
+              </Link>
+            </div>
             <input id="password" name="password" type="password" autoComplete="current-password" required
               value={form.password} onChange={handleChange} placeholder="••••••••" />
           </div>

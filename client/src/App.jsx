@@ -13,6 +13,8 @@ const Testimonials = lazy(() => import('./pages/Testimonials/Testimonials'));
 const Contact      = lazy(() => import('./pages/Contact/Contact'));
 const LoginPage    = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword  = lazy(() => import('./pages/ResetPassword'));
 const AdminLogin   = lazy(() => import('./pages/AdminLogin'));
 const Dashboard    = lazy(() => import('./pages/Dashboard/Dashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard/AdminDashboard'));
@@ -44,9 +46,11 @@ function App() {
               <Route path="/contact"      element={<Contact />} />
 
               {/* Auth pages */}
-              <Route path="/login"        element={<LoginPage />} />
-              <Route path="/register"     element={<RegisterPage />} />
-              <Route path="/admin-login"  element={<AdminLogin />} />
+              <Route path="/login"               element={<LoginPage />} />
+              <Route path="/register"            element={<RegisterPage />} />
+              <Route path="/forgot-password"     element={<ForgotPassword />} />
+              <Route path="/reset-password/:token" element={<ResetPassword />} />
+              <Route path="/admin-login"         element={<AdminLogin />} />
 
               {/* Protected */}
               <Route

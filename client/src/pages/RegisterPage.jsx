@@ -6,8 +6,8 @@ import '../styles/auth.css';
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-  const [error, setError] = useState('');
+  const [form, setForm]     = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
+  const [error, setError]   = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const cardRef = useRef();
@@ -49,13 +49,14 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      const { name, email, password } = form;
-      const userData = await register(name, email, password);
+      const { name, email, phone, password } = form;
+      // register() returns user data & tokens — auto-login included
+      const userData = await register(name, email, password, phone);
       setSuccess(true);
       setTimeout(() => {
-        if (userData.role === 'admin') navigate('/admin');
-        else navigate('/welcome');
-      }, 2500);
+        if (userData?.role === 'admin') navigate('/admin');
+        else navigate('/dashboard');
+      }, 1800);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Try again.');
     } finally {
@@ -80,18 +81,14 @@ export default function RegisterPage() {
 
         {success ? (
           <div style={{
-            background: 'rgba(16, 185, 129, 0.1)',
-            border: '1px solid rgba(16, 185, 129, 0.4)',
-            color: '#34d399',
-            borderRadius: '14px',
-            padding: '2rem',
-            textAlign: 'center',
-            animation: 'cardReveal 0.4s ease both'
+            background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.4)',
+            color: '#34d399', borderRadius: '14px', padding: '2rem', textAlign: 'center',
+            animation: 'cardReveal 0.4s ease both',
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
             <h3 style={{ margin: '0 0 0.5rem 0', color: '#fff', fontSize: '1.25rem' }}>Welcome Aboard!</h3>
             <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
-              Your account has been created. Redirecting to your dashboard...
+              Account created &amp; logged in. Taking you to your dashboard…
             </p>
           </div>
         ) : (
@@ -107,6 +104,11 @@ export default function RegisterPage() {
                 value={form.email} onChange={handleChange} placeholder="you@example.com" />
             </div>
             <div className="field-group">
+              <label htmlFor="phone">Phone Number <span style={{ color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>(optional)</span></label>
+              <input id="phone" name="phone" type="tel"
+                value={form.phone} onChange={handleChange} placeholder="+91 9999999999" />
+            </div>
+            <div className="field-group">
               <label htmlFor="password">Password</label>
               <input id="password" name="password" type="password" required
                 value={form.password} onChange={handleChange} placeholder="Min. 6 characters" />
@@ -117,7 +119,7 @@ export default function RegisterPage() {
                 value={form.confirmPassword} onChange={handleChange} placeholder="Confirm your password" />
             </div>
             <button type="submit" className="auth-btn" disabled={loading}>
-              {loading ? '✨ Creating Account…' : 'Create Account →'}
+              {loading ? '✨ Creating Account…' : 'Create Account & Sign In →'}
             </button>
           </form>
         )}
