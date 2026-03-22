@@ -55,7 +55,7 @@ export default function RegisterPage() {
       setSuccess(true);
       setTimeout(() => {
         if (userData?.role === 'admin') navigate('/admin');
-        else navigate('/dashboard');
+        else navigate('/');
       }, 1800);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Try again.');

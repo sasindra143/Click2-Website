@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './Navbar.css';
@@ -13,10 +13,29 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleAvatarClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        await updateProfile({ avatar: reader.result });
+      } catch (err) {
+        console.error('Failed to update avatar', err);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -58,15 +77,26 @@ export default function Navbar() {
         <div className="nav-cta">
           {user ? (
             <div className="nav-user">
-              {user.avatar && (
-                <img 
-                  src={user.avatar} 
-                  alt="Profile" 
-                  className="nav-avatar" 
-                  onError={(e) => e.target.style.display = 'none'}
-                />
-              )}
-              <Link to="/dashboard" className="btn-outline">Dashboard</Link>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                style={{ display: 'none' }} 
+                accept="image/*" 
+                onChange={handleFileChange} 
+              />
+              <img 
+                src={user.avatar || 'https://via.placeholder.com/42'} 
+                alt="Profile" 
+                className="nav-avatar" 
+                onClick={handleAvatarClick}
+                title="Click to update profile image"
+                style={{ cursor: 'pointer' }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://via.placeholder.com/42';
+                }}
+              />
+              {user.role === 'admin' && <Link to="/admin" className="btn-outline">Admin Panel</Link>}
               <button className="btn-primary" onClick={handleLogout}>Logout</button>
             </div>
           ) : (
@@ -102,7 +132,7 @@ export default function Navbar() {
         <div className="mobile-cta">
           {user ? (
             <>
-              <Link to="/dashboard" className="btn-outline" onClick={() => setOpen(false)}>Dashboard</Link>
+              {user.role === 'admin' && <Link to="/admin" className="btn-outline" onClick={() => setOpen(false)}>Admin Panel</Link>}
               <button className="btn-primary" onClick={handleLogout}>Logout</button>
             </>
           ) : (

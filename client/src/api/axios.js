@@ -51,7 +51,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false;
         localStorage.removeItem('accessToken');
-        window.location.href = '/admin-login';
+        window.location.href = '/login';
         return Promise.reject(err);
       }
 
@@ -67,7 +67,7 @@ api.interceptors.response.use(
         processQueue(refreshErr, null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        window.location.href = '/admin-login';
+        window.location.href = '/login';
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;

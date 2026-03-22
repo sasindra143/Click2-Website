@@ -42,7 +42,7 @@ export default function LoginPage() {
     try {
       const userData = await login(form.email, form.password);
       if (userData.role === 'admin') navigate('/admin');
-      else navigate('/dashboard');
+      else navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Check your credentials.');
     } finally {
