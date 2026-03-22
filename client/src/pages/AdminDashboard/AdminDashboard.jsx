@@ -38,7 +38,7 @@ const Dialog = ({ type, title, message, onConfirm, onClose, loading }) => (
 );
 
 const AdminDashboard = () => {
-  const { user }  = useAuth();
+  const { user, refreshUser }  = useAuth();
   const [usersList, setUsersList]   = useState([]);
   const [emailLogs, setEmailLogs]   = useState([]);
   const [smsLogs, setSmsLogs]       = useState([]);
@@ -63,6 +63,29 @@ const AdminDashboard = () => {
   };
 
   const closeDialog = () => setDialog(null);
+
+  const connectGmail = async () => {
+    try {
+      const { data } = await api.get('/google/auth-url');
+      window.location.href = data.url;
+    } catch (e) {
+      showDialog('error', 'Auth Error', e.response?.data?.message || 'Could not get Google auth URL');
+    }
+  };
+
+  const disconnectGmail = async () => {
+    showDialog('confirm', 'Disconnect Gmail', 'Are you sure you want to disconnect Gmail? Automated emails will fail if SMTP is blocked!', async () => {
+      setDialog(prev => ({ ...prev, loading: true }));
+      try {
+        await api.post('/google/disconnect');
+        await refreshUser();
+        closeDialog();
+        showDialog('success', 'Disconnected', 'Gmail API unlinked successfully.');
+      } catch (err) {
+        showDialog('error', 'Error', 'Failed to disconnect Gmail.');
+      }
+    });
+  };
 
   const fetchData = useCallback(async () => {
     try {
@@ -148,9 +171,32 @@ const AdminDashboard = () => {
 
       <main className="admin-main">
         {/* ── Header ── */}
-        <div className="admin-header">
-          <h1>Admin <span>Dashboard</span></h1>
-          <p>Monitor users, control email/SMS automations, and manage your platform.</p>
+        <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+          <div>
+            <h1>Admin <span>Dashboard</span></h1>
+            <p>Monitor users, control email/SMS automations, and manage your platform.</p>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px 20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div>
+              <div style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '4px' }}>System Email Status</div>
+              {user?.gmail_connected ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981', fontWeight: '600', fontSize: '14px' }}>
+                  <span style={{ width: 8, height: 8, background: '#10b981', borderRadius: '50%', boxShadow: '0 0 8px #10b981' }} />
+                  Gmail Secure API Active
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontWeight: '600', fontSize: '14px' }}>
+                  <span style={{ width: 8, height: 8, background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 8px #ef4444' }} />
+                  Firewall Blocked (Connect Gmail!)
+                </div>
+              )}
+            </div>
+            {user?.gmail_connected ? (
+              <button onClick={disconnectGmail} style={{ background: 'transparent', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500', transition: 'all 0.2s' }}>Disconnect</button>
+            ) : (
+              <button onClick={connectGmail} style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', border: 'none', color: '#fff', padding: '10px 18px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.2s' }}>🔗 Connect Gmail Now</button>
+            )}
+          </div>
         </div>
 
         {/* ── Stats Cards ── */}
