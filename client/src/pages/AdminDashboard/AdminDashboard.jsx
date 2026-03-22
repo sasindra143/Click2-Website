@@ -40,9 +40,12 @@ const Dialog = ({ type, title, message, onConfirm, onClose, loading }) => (
 const AdminDashboard = () => {
   const { user }  = useAuth();
   const [usersList, setUsersList]   = useState([]);
+  const [emailLogs, setEmailLogs]   = useState([]);
+  const [smsLogs, setSmsLogs]       = useState([]);
   const [stats, setStats]           = useState(null);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState('');
+  const [activeTab, setActiveTab]   = useState('users');
 
   // Custom dialog state
   const [dialog, setDialog] = useState(null);
@@ -63,19 +66,23 @@ const AdminDashboard = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      // Fetch users independently
-      const usersRes = await api.get('/admin/users');
+      const [usersRes, emailRes, smsRes] = await Promise.all([
+        api.get('/admin/users').catch(() => ({ data: [] })),
+        api.get('/admin/email-logs').catch(() => ({ data: [] })),
+        api.get('/admin/sms-logs').catch(() => ({ data: [] }))
+      ]);
       setUsersList(usersRes.data || []);
+      setEmailLogs(emailRes.data || []);
+      setSmsLogs(smsRes.data || []);
       
-      // Fetch stats independently (don't throw if it fails, since it's a new route that might take longer to deploy on Render)
       try {
         const statsRes = await api.get('/admin/stats');
         setStats(statsRes.data);
       } catch (statsErr) {
-        console.warn('Stats endpoint unavailable yet. Deployment might be in progress.');
+        console.warn('Stats endpoint unavailable yet.');
       }
     } catch (err) {
-      setError('Failed to fetch users. Ensure you are logged in as administrator.');
+      setError('Failed to fetch data.');
     } finally {
       setLoading(false);
     }
@@ -176,10 +183,18 @@ const AdminDashboard = () => {
           </div>
         ) : (
           <>
-            <div className="admin-section-title">
-              <h2>👥 User Management</h2>
-              <span className="admin-count">{usersList.length} users</span>
+            <div className="admin-tabs">
+              <button className={`admin-tab ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>👥 Users</button>
+              <button className={`admin-tab ${activeTab === 'email-logs' ? 'active' : ''}`} onClick={() => setActiveTab('email-logs')}>📋 Email Logs</button>
+              <button className={`admin-tab ${activeTab === 'sms-logs' ? 'active' : ''}`} onClick={() => setActiveTab('sms-logs')}>📱 SMS Logs</button>
             </div>
+
+            {activeTab === 'users' && (
+              <>
+                <div className="admin-section-title">
+                  <h2>👥 User Management</h2>
+                  <span className="admin-count">{usersList.length} users</span>
+                </div>
 
             {/* ── Desktop Table ── */}
             <div className="admin-table-container">
@@ -300,6 +315,88 @@ const AdminDashboard = () => {
                 </div>
               ))}
             </div>
+            </>
+            )}
+
+            {/* ── Email Logs Tab ── */}
+            {activeTab === 'email-logs' && (
+              <div className="admin-table-container">
+                <div className="admin-section-title">
+                  <h2>📋 Last 200 Email Logs</h2>
+                  <span className="admin-count">{emailLogs.length} logs</span>
+                </div>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>To</th>
+                      <th>User</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Error Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emailLogs.map((log) => (
+                      <tr key={log._id}>
+                        <td className="admin-email">{log.to}</td>
+                        <td>{log.userId?.name || '—'}</td>
+                        <td><span className="log-type">{log.type}</span></td>
+                        <td>
+                          <span className={`status-dot ${log.status === 'sent' ? 'dot-green' : 'dot-red'}`} />
+                          {log.status === 'sent' ? 'Sent' : `Failed (Retry: ${log.retryCount})`}
+                        </td>
+                        <td className="admin-date">{fmt(log.createdAt)}</td>
+                        <td className="admin-error-text" style={{ color: log.status === 'failed' ? '#ef4444' : '#6b7280', fontSize: '13px' }}>
+                          {log.error || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {emailLogs.length === 0 && <div className="admin-empty"><p>No email logs found yet.</p></div>}
+              </div>
+            )}
+
+            {/* ── SMS Logs Tab ── */}
+            {activeTab === 'sms-logs' && (
+              <div className="admin-table-container">
+                <div className="admin-section-title">
+                  <h2>📱 Last 200 SMS Logs</h2>
+                  <span className="admin-count">{smsLogs.length} logs</span>
+                </div>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>To</th>
+                      <th>User</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Error Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {smsLogs.map((log) => (
+                      <tr key={log._id}>
+                        <td className="admin-email">{log.to}</td>
+                        <td>{log.userId?.name || '—'}</td>
+                        <td><span className="log-type">{log.type} ({log.sentBy})</span></td>
+                        <td>
+                          <span className={`status-dot ${log.status === 'sent' ? 'dot-green' : 'dot-red'}`} />
+                          {log.status === 'sent' ? 'Sent' : 'Failed'}
+                        </td>
+                        <td className="admin-date">{fmt(log.createdAt)}</td>
+                        <td className="admin-error-text" style={{ color: log.status === 'failed' ? '#ef4444' : '#6b7280', fontSize: '13px' }}>
+                          {log.error || '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {smsLogs.length === 0 && <div className="admin-empty"><p>No SMS logs found yet.</p></div>}
+              </div>
+            )}
           </>
         )}
       </main>
