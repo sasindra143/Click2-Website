@@ -61,10 +61,6 @@ export default function RegisterPage() {
       const userData = await register(name, email, password, phone);
       setSuccess(true);
       setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
-      setTimeout(() => {
-        if (userData?.role === 'admin') navigate('/admin');
-        else navigate('/');
-      }, 1800);
     } catch (err) {
       if (!err.response) {
         setError('Server is waking up. Please wait 30 seconds and try again.');
@@ -94,14 +90,19 @@ export default function RegisterPage() {
         {success ? (
           <div style={{
             background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.4)',
-            color: '#34d399', borderRadius: '14px', padding: '2rem', textAlign: 'center',
-            animation: 'cardReveal 0.4s ease both',
+            color: '#34d399', borderRadius: '14px', padding: '2.5rem', textAlign: 'center',
+            animation: 'cardReveal 0.4s ease both', display: 'flex', flexDirection: 'column', gap: '1rem'
           }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
-            <h3 style={{ margin: '0 0 0.5rem 0', color: '#fff', fontSize: '1.25rem' }}>Welcome Aboard!</h3>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
-              Account created &amp; logged in. Taking you to your dashboard…
+            <div style={{ fontSize: '3.5rem' }}>🎉</div>
+            <h3 style={{ margin: '0', color: '#fff', fontSize: '1.4rem' }}>Registration Successful!</h3>
+            <p style={{ margin: 0, fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
+              Your account has been created successfully. Welcome to Click2Website! We have sent a welcome email to your inbox.
             </p>
+            <div style={{ marginTop: '1rem' }}>
+              <Link to="/" className="auth-btn" style={{ textDecoration: 'none', display: 'inline-block', background: '#3b82f6', color: '#fff' }}>
+                Back to Home
+              </Link>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="auth-form">
