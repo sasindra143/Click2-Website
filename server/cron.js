@@ -190,6 +190,7 @@ cron.schedule('0 * * * *', async () => {
         const newCount    = (user.reminderCount || 0) + 1;
         const trackingUrl = `${API_URL}/api/auth/track-welcome/${user._id}`;
 
+        // Send Email Reminder
         const sent = await sendViaOAuthOrFallback({
           adminUser,
           to:      user.email,
@@ -204,30 +205,25 @@ cron.schedule('0 * * * *', async () => {
           user.reminderCount  = newCount;
           await user.save();
         }
-      }
 
-      // ── SMS FOLLOW-UP (once, 4 hours after signup) ────
-      if (!user.smsFollowupSent && user.phone && user.createdAt <= fourHoursAgo) {
-        const client = getTwilioClient();
-        if (client) {
-          const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
-          const smsBody =
-            `Hi ${user.name.split(' ')[0]}! 👋 We noticed you missed our welcome email.\n` +
-            `Your website is waiting! https://click2website.netlify.app`;
+        // Send SMS Reminder
+        if (user.phone) {
+          const client = getTwilioClient();
+          if (client) {
+            const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
+            const smsBody = `Hi ${user.name.split(' ')[0]}! 👋 (Reminder #${newCount})\nWe noticed you missed our welcome email.\nYour website is waiting! https://click2website.netlify.app`;
 
-          try {
-            await client.messages.create({
-              body: smsBody,
-              from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
-              to:   `whatsapp:${formattedPhone}`,
-            });
-            await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
-            user.smsFollowupSent = true;
-            await user.save();
-            console.log(`📱 SMS follow-up sent to ${user.phone} (${user.email})`);
-          } catch (err) {
-            await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
-            console.error(`❌ SMS failed for ${user.phone}:`, err.message);
+            try {
+              await client.messages.create({
+                body: smsBody,
+                from: process.env.TWILIO_PHONE_NUMBER,
+                to:   formattedPhone,
+              });
+              await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
+              console.log(`📱 SMS reminder #${newCount} sent to ${user.phone}`);
+            } catch (err) {
+              await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
+            }
           }
         }
       }
@@ -244,7 +240,6 @@ export const sendWelcomeEmail = async (user) => {
   const API_URL     = process.env.API_URL || 'https://click2website-backend.onrender.com';
   const trackingUrl = `${API_URL}/api/auth/track-welcome/${user._id}`;
 
-  // Try to use admin's Gmail OAuth first
   const adminUser = await User.findOne({ role: 'admin' }).catch(() => null);
 
   await sendViaOAuthOrFallback({
@@ -255,6 +250,27 @@ export const sendWelcomeEmail = async (user) => {
     type:    'welcome',
     userId:  user._id,
   });
+};
+
+// ── Send Welcome SMS immediately on signup ─────────────
+export const sendWelcomeSMS = async (user) => {
+  if (!user.phone) return;
+  const client = getTwilioClient();
+  if (!client) return;
+
+  const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
+  const smsBody = `Hi ${user.name.split(' ')[0]}! Welcome to Click2Website 🚀. \nWe will review your details and contact you shortly to build your dream project!\n- The Web Dev Team`;
+
+  try {
+    await client.messages.create({
+      body: smsBody,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to:   formattedPhone,
+    });
+    await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
+  } catch (err) {
+    await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
+  }
 };
 
 // ── Send Login Alert Email on login ───────────────────
