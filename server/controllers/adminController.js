@@ -2,13 +2,7 @@ import twilio from 'twilio';
 import User from '../models/User.js';
 import EmailLog from '../models/EmailLog.js';
 import SMSLog from '../models/SMSLog.js';
-
-const getTwilioClient = () => {
-  const sid   = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token || sid.startsWith('your_')) return null;
-  return twilio(sid, token);
-};
+import { transporter, getTwilioClient } from '../config/messaging.js';
 
 /* ── GET /api/admin/users ── */
 export const getAllUsers = async (req, res) => {
@@ -78,8 +72,8 @@ export const sendCustomSMS = async (req, res) => {
     const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
     await client.messages.create({
       body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to:   formattedPhone,
+      from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
+      to:   `whatsapp:${formattedPhone}`,
     });
 
     // Log the SMS
@@ -154,5 +148,18 @@ export const getSMSLogs = async (req, res) => {
     res.json(logs);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
+  }
+};
+import { testAutomationForUser } from '../cron.js';
+
+/* ── POST /api/admin/users/:id/test-automation ── */
+export const testAutomation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await testAutomationForUser(id);
+    res.json({ message: 'Automation test triggered', result });
+  } catch (err) {
+    console.error('Test automation error:', err.message);
+    res.status(500).json({ message: 'Failed to test automation', error: err.message });
   }
 };

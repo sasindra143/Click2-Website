@@ -33,9 +33,9 @@ export const register = async (req, res) => {
 
     const user = await User.create({ name, email, password, phone: phone || null });
 
-    // Send the professional branded Welcome Email and SMS (non-blocking)
+    // Send the professional branded Welcome Email (non-blocking)
+    // Automated SMS follow-up will trigger after 4 hours if not opened.
     sendWelcomeEmail(user).catch(console.error);
-    sendWelcomeSMS(user).catch(console.error);
 
     // Auto-login: return tokens immediately
     const accessToken  = generateAccessToken(user._id);

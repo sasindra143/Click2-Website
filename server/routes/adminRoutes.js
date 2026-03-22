@@ -7,6 +7,7 @@ import {
   getDashboardStats,
   getEmailLogs,
   getSMSLogs,
+  testAutomation,
 } from '../controllers/adminController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -21,5 +22,6 @@ router.post('/send-custom-sms',              protect, admin, sendCustomSMS);
 router.get('/stats',                         protect, admin, getDashboardStats);
 router.get('/email-logs',                    protect, admin, getEmailLogs);
 router.get('/sms-logs',                      protect, admin, getSMSLogs);
+router.post('/users/:id/test-automation',    protect, admin, testAutomation);
 
 export default router;

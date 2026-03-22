@@ -7,50 +7,12 @@ import EmailLog from './models/EmailLog.js';
 import SMSLog from './models/SMSLog.js';
 
 // ── Nodemailer fallback transport ─────────────────────
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.PLATFORM_EMAIL,
-    pass: process.env.PLATFORM_EMAIL_PASSWORD,
-  },
-});
-
-// ── Twilio Helper ──────────────────────────────────────
-const getTwilioClient = () => {
-  const sid   = process.env.TWILIO_ACCOUNT_SID;
-  const token = process.env.TWILIO_AUTH_TOKEN;
-  if (!sid || !token || sid.startsWith('your_')) return null;
-  return twilio(sid, token);
-};
-
-// ── Build OAuth2 Gmail client for a given user ─────────
-const buildOAuth2Client = (user) => {
-  const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
-  );
-  auth.setCredentials({
-    access_token:  user.access_token,
-    refresh_token: user.refresh_token,
-    expiry_date:   user.token_expiry ? user.token_expiry.getTime() : undefined,
-  });
-  return auth;
-};
-
-// ── Encode email to base64url for Gmail API ────────────
-const encodeEmail = ({ from, to, subject, body }) => {
-  const raw = [
-    `From: ${from}`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/html; charset=UTF-8',
-    '',
-    body,
-  ].join('\r\n');
-  return Buffer.from(raw).toString('base64url');
-};
+import {
+  transporter,
+  getTwilioClient,
+  buildOAuth2Client,
+  encodeEmail
+} from './config/messaging.js';
 
 // ── Send via Gmail API (OAuth) with Netlify Relay fallback ─
 const sendViaOAuthOrFallback = async ({ adminUser, to, subject, html, type, userId }) => {
@@ -75,59 +37,127 @@ const sendViaOAuthOrFallback = async ({ adminUser, to, subject, html, type, user
 
   // Fallback: Netlify Serverless Relay Function (Bypasses Render SMTP Firewall)
   if (!process.env.PLATFORM_EMAIL || !process.env.PLATFORM_EMAIL_PASSWORD) {
+    console.error('❌ Missing PLATFORM_EMAIL or PASSWORD');
     await EmailLog.create({ userId, to, subject, type, status: 'failed', error: 'Missing PLATFORM_EMAIL in environment variables' });
     return false;
   }
   
   try {
-    const netlifyUrl = `${process.env.CLIENT_URL || 'https://click2website.netlify.app'}/.netlify/functions/send-email`;
-    
-    const response = await fetch(netlifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        secretKey: 'super_secret_netlify_bypass_key_for_click2web',
-        to: to,
-        subject: subject,
-        html: html,
-        user: process.env.PLATFORM_EMAIL,
-        pass: process.env.PLATFORM_EMAIL_PASSWORD
-      })
+    const https = await import('https');
+    const data = JSON.stringify({
+      secretKey: 'super_secret_netlify_bypass_key_for_click2web',
+      to: to,
+      subject: subject,
+      html: html,
+      user: process.env.PLATFORM_EMAIL,
+      pass: process.env.PLATFORM_EMAIL_PASSWORD
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(errText || `Netlify returned ${response.status}`);
-    }
-
-    await EmailLog.create({ userId, to, subject, type, status: 'sent' });
-    console.log(`✉️  [Netlify Relay] Email sent to ${to}`);
-    return true;
-  } catch (err) {
-    const existing = await EmailLog.findOne({ userId, type, status: 'failed' }).sort({ createdAt: -1 });
-    const retryCount = (existing?.retryCount || 0) + 1;
+    const netlifyHost = 'click2website.netlify.app';
     
-    await EmailLog.create({ userId, to, subject, type, status: 'failed', error: 'Netlify Relay Error: ' + err.message, retryCount });
-    console.error(`❌ Email failed for ${to} via Relay: ${err.message}`);
+    const options = {
+      hostname: netlifyHost,
+      port: 443,
+      path: '/.netlify/functions/send-email',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(data)
+      }
+    };
+
+    return new Promise((resolve, reject) => {
+      const req = https.request(options, (res) => {
+        let responseBody = '';
+        res.on('data', (chunk) => responseBody += chunk);
+        res.on('end', async () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            await EmailLog.create({ userId, to, subject, type, status: 'sent' });
+            console.log(`✉️  [Netlify Relay] Email sent to ${to}`);
+            resolve(true);
+          } else {
+            console.error(`❌ Relay Error HTTP ${res.statusCode}: ${responseBody}`);
+            await EmailLog.create({ userId, to, subject, type, status: 'failed', error: `Netlify Relay Error HTTP ${res.statusCode}: ${responseBody}` });
+            resolve(false);
+          }
+        });
+      });
+
+      req.on('error', async (err) => {
+        console.error('❌ Relay Request Error:', err.message);
+        await EmailLog.create({ userId, to, subject, type, status: 'failed', error: 'Netlify Relay Request Error: ' + err.message });
+        resolve(false);
+      });
+
+      req.write(data);
+      req.end();
+    });
+
+  } catch (err) {
+    console.error('❌ Relay Setup Error:', err.message);
+    await EmailLog.create({ userId, to, subject, type, status: 'failed', error: 'Netlify Setup Error: ' + err.message });
     return false;
   }
 };
 
 // ── Welcome Email Template ─────────────────────────────
 const buildWelcomeEmailHtml = (user, trackingUrl) => `
-<div style="font-family: Arial, sans-serif; font-size: 16px; color: #000;">
-  <p><strong>Hi Welcome, ${user.name}! 🚀</strong></p>
-  <br/>
-  <p>You have successfully registered on our website.</p>
-  <br/>
-  <p>You are very close to getting your requirement website! Our team will review your details and get in touch with you shortly to build your dream project.</p>
-  <br/>
-  <p>Contact us: <a href="mailto:sasindragandla@gmail.com">sasindragandla@gmail.com</a> | <a href="tel:+919959732476">+91 9959732476</a></p>
-  <br/><br/>
-  <p>Cheers,<br/>The Web Development Team</p>
-  <!-- Tracking Pixel -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.06); }
+    .header { background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%); padding: 48px 40px; text-align: center; }
+    .header h1 { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .body { padding: 40px 40px; }
+    .greeting { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
+    .text { font-size: 16px; color: #475569; line-height: 1.8; margin-bottom: 28px; }
+    .feature-card { background: #f1f5f9; border-radius: 12px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #7c3aed; }
+    .feature-card p { font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 5px; }
+    .feature-card span { font-size: 13px; color: #64748b; }
+    .cta-btn { display: inline-block; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #ffffff !important; text-align: center; padding: 16px 36px; border-radius: 12px; font-size: 16px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3); }
+    .footer { background: #f8fafc; padding: 30px; text-align: center; color: #94a3b8; font-size: 13px; border-top: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚀 Click2Website</h1>
+    </div>
+    <div class="body">
+      <p class="greeting">Hi ${user.name.split(' ')[0]}, you're in! 👋</p>
+      <p class="text">
+        Welcome to the Click2Website family. We're beyond excited to help you transform your vision into a stunning digital reality.
+      </p>
+      
+      <div class="feature-card">
+        <p>Your Project is in Queue ⏱️</p>
+        <span>Our specialized design team is reviewing your details to create a custom roadmap for your website.</span>
+      </div>
+
+      <p class="text">
+        Want to fast-track your project? Let's connect and discuss your specific requirements.
+      </p>
+
+      <div style="text-align: center;">
+        <a href="https://click2website.netlify.app/dashboard" class="cta-btn">Visit Your Dashboard</a>
+      </div>
+      
+      <p class="text" style="margin-top: 30px; font-size: 14px; color: #64748b;">
+        Need immediate help? Reply to this email or call us at <a href="tel:+919959732476" style="color: #7c3aed; font-weight: 600;">+91 9959732476</a>.
+      </p>
+    </div>
+    <div class="footer">
+      <p>© ${new Date().getFullYear()} Click2Website — Modern Web Business Labs<br/>
+      Designed for results. Built for scale.</p>
+    </div>
+  </div>
   <img src="${trackingUrl}" width="1" height="1" alt="" style="display:none;" />
-</div>
+</body>
+</html>
 `;
 
 // ── Follow-up Reminder Template ────────────────────────
@@ -148,7 +178,6 @@ const buildFollowupEmailHtml = (user, reminderCount, trackingUrl) => `
     .cta-btn { display: block; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #ffffff !important; text-align: center; padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: 700; text-decoration: none; margin: 24px 0; }
     .footer { background: #fafafa; padding: 18px 28px; border-top: 1px solid #e5e7eb; text-align: center; }
     .footer p { font-size: 12px; color: #9ca3af; }
-    @media (max-width: 600px) { .body { padding: 20px 14px; } }
   </style>
 </head>
 <body>
@@ -157,21 +186,18 @@ const buildFollowupEmailHtml = (user, reminderCount, trackingUrl) => `
       <h1>🌐 Click2Website — A Gentle Reminder</h1>
     </div>
     <div class="body">
-      <p class="greeting">Hi ${user.name.split(' ')[0]}, your success is our priority! 👋</p>
+      <p class="greeting">Hi ${user.name.split(' ')[0]}, missed our email? 👋</p>
       <p class="message">
-        We noticed that our welcome email might have slipped through the cracks — inboxes get busy!
-        We're following up because we genuinely want to help you build something amazing online.
+        We noticed you haven't opened our welcome email yet. We genuinely want to help you build something amazing online. 
+        Your digital journey starts here!
       </p>
       <p class="message">
-        🕐 This is reminder <strong>#${reminderCount}</strong>. Your website is waiting to be built!
+        🕐 This is reminder <strong>#${reminderCount}</strong>. Let's make your website a reality!
       </p>
-      <a href="https://click2website.netlify.app/contact" class="cta-btn">💬 Let's Talk — Schedule a Free Call</a>
-      <p class="message" style="font-size:13px; color:#9ca3af; text-align:center;">
-        Questions? Reach us at <strong>sasindragandla@gmail.com</strong>
-      </p>
+      <a href="https://click2website.netlify.app/contact" class="cta-btn">💬 Chat with Us on WhatsApp</a>
     </div>
     <div class="footer">
-      <p>© 2026 Click2Website — We're here to grow your business 🚀</p>
+      <p>© ${new Date().getFullYear()} Click2Website — Your growth partner 🚀</p>
     </div>
   </div>
   <img src="${trackingUrl}" width="1" height="1" alt="" style="display:none;" />
@@ -181,82 +207,131 @@ const buildFollowupEmailHtml = (user, reminderCount, trackingUrl) => `
 
 // ── CRON: Every hour — Email & SMS Follow-up ───────────
 cron.schedule('0 * * * *', async () => {
-  console.log('⏰ [CRON] Running Automation: Email & SMS Follow-up Check...');
+  console.log('⏰ [CRON] Running Automation Sequence...');
 
   try {
-    // Find the admin user to use their Gmail OAuth for sending
     const adminUser = await User.findOne({ role: 'admin' });
+    const now = new Date();
+    const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000);
+    const API_URL = process.env.API_URL || 'https://click2website-backend.onrender.com';
 
-    const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    const fourHoursAgo  = new Date(Date.now() - 4 * 60 * 60 * 1000);
-    const API_URL       = process.env.API_URL || 'https://click2website-backend.onrender.com';
-
-    const unengagedUsers = await User.find({
+    // Sequence Step 1: 4-Hour SMS Follow-up for unopened emails
+    const usersForSMS = await User.find({
       role: 'user',
       welcomeEmailOpened: false,
+      smsFollowupSent: false,
       automationPaused: false,
+      createdAt: { $lte: fourHoursAgo },
     });
 
-    for (const user of unengagedUsers) {
-      const now = new Date();
-
-      // ── EMAIL FOLLOW-UP (every 3 hours) ──────────────
-      const lastReminder = user.lastReminderAt;
-      const canSendEmail =
-        !lastReminder
-          ? user.createdAt <= threeHoursAgo
-          : (now - lastReminder) >= 3 * 60 * 60 * 1000;
-
-      if (canSendEmail) {
-        const newCount    = (user.reminderCount || 0) + 1;
-        const trackingUrl = `${API_URL}/api/auth/track-welcome/${user._id}`;
-
-        // Send Email Reminder
-        const sent = await sendViaOAuthOrFallback({
-          adminUser,
-          to:      user.email,
-          subject: `⏰ Reminder #${newCount}: Your website is waiting, ${user.name.split(' ')[0]}!`,
-          html:    buildFollowupEmailHtml(user, newCount, trackingUrl),
-          type:    'reminder',
-          userId:  user._id,
-        });
-
-        if (sent) {
-          user.lastReminderAt = now;
-          user.reminderCount  = newCount;
-          await user.save();
-        }
-
-        // Send SMS Reminder
-        if (user.phone) {
-          const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
-          const smsBody = `Hi ${user.name.split(' ')[0]}! 👋 (Reminder #${newCount})\nWe noticed you missed our welcome email.\nYour website is waiting! https://click2website.netlify.app`;
+    for (const user of usersForSMS) {
+      if (!user.phone) continue;
+      
+      const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
+      const smsBody = `Hi ${user.name.split(' ')[0]}! 👋 We noticed you haven't checked our welcome email. Your dream website is waiting! 🚀 https://click2website.netlify.app`;
+      
+      const client = getTwilioClient();
+      if (client) {
+        try {
+          const waFrom = `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`;
+          const waTo   = `whatsapp:${formattedPhone}`;
+          await client.messages.create({ body: smsBody, from: waFrom, to: waTo });
           
-          const client = getTwilioClient();
-          if (!client) {
-            await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: 'Missing TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN in Render variables' });
-          } else {
-            try {
-              await client.messages.create({
-                body: smsBody,
-                from: process.env.TWILIO_PHONE_NUMBER,
-                to:   formattedPhone,
-              });
-              await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
-              console.log(`📱 SMS reminder #${newCount} sent to ${user.phone}`);
-            } catch (err) {
-              await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
-            }
-          }
+          user.smsFollowupSent = true;
+          user.smsSent += 1;
+          await user.save();
+          
+          await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
+          console.log(`📱 4h SMS Follow-up sent to ${user.phone}`);
+        } catch (err) {
+          console.error(`❌ SMS Error for ${user.phone}:`, err.message);
+          await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
         }
       }
     }
 
-    console.log(`✅ [CRON] Automation complete. Processed ${unengagedUsers.length} unengaged users.`);
+    // Sequence Step 2: Periodic Email Reminders (Every 24 hours if still unopened)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const usersForEmailReminder = await User.find({
+      role: 'user',
+      welcomeEmailOpened: false,
+      automationPaused: false,
+      $or: [
+        { lastReminderAt: null, createdAt: { $lte: twentyFourHoursAgo } },
+        { lastReminderAt: { $lte: twentyFourHoursAgo } }
+      ]
+    });
+
+    for (const user of usersForEmailReminder) {
+      const newCount = (user.reminderCount || 0) + 1;
+      const trackingUrl = `${API_URL}/api/auth/track-welcome/${user._id}`;
+
+      const sent = await sendViaOAuthOrFallback({
+        adminUser,
+        to:      user.email,
+        subject: `⏰ Reminder #${newCount}: Your website is waiting, ${user.name.split(' ')[0]}!`,
+        html:    buildFollowupEmailHtml(user, newCount, trackingUrl),
+        type:    'reminder',
+        userId:  user._id,
+      });
+
+      if (sent) {
+        user.lastReminderAt = now;
+        user.reminderCount = newCount;
+        user.emailsSent += 1;
+        await user.save();
+      }
+    }
+
+    console.log(`✅ [CRON] Automation sequence processed. SMS: ${usersForSMS.length}, Emails: ${usersForEmailReminder.length}`);
   } catch (err) {
     console.error('❌ [CRON] Automation Error:', err.message);
   }
 });
+
+// ── MANUAL TEST: Admin can trigger sequence for a specific user ───
+export const testAutomationForUser = async (userId) => {
+  console.log(`🧪 [TEST] Manually triggering automation for user: ${userId}`);
+  const user = await User.findById(userId);
+  if (!user) throw new Error('User not found');
+  
+  const adminUser = await User.findOne({ role: 'admin' });
+  const API_URL = process.env.API_URL || 'https://click2website-backend.onrender.com';
+
+  // 1. Send Welcome Email
+  const trackingUrl = `${API_URL}/api/auth/track-welcome/${user._id}`;
+  const emailSent = await sendViaOAuthOrFallback({
+    adminUser,
+    to: user.email,
+    subject: `🧪 [TEST] Welcome to Click2Website!`,
+    html: buildWelcomeEmailHtml(user, trackingUrl),
+    type: 'welcome',
+    userId: user._id,
+  });
+
+  // 2. Send SMS Follow-up (if phone exists)
+  let smsSent = false;
+  if (user.phone) {
+    const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
+    const smsBody = `Hi ${user.name.split(' ')[0]}! 👋 This is a test from Click2Website. 🚀 https://click2website.netlify.app`;
+    
+    const client = getTwilioClient();
+    if (client) {
+      try {
+        const waFrom = `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`;
+        const waTo   = `whatsapp:${formattedPhone}`;
+        await client.messages.create({ body: smsBody, from: waFrom, to: waTo });
+        smsSent = true;
+        await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
+      } catch (err) {
+        console.error('❌ [TEST] SMS Error:', err.message);
+        await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
+      }
+    }
+  }
+
+  return { emailSent, smsSent };
+};
 
 // ── Send Welcome Email immediately on signup ───────────
 export const sendWelcomeEmail = async (user) => {
@@ -265,7 +340,7 @@ export const sendWelcomeEmail = async (user) => {
 
   const adminUser = await User.findOne({ role: 'admin' }).catch(() => null);
 
-  await sendViaOAuthOrFallback({
+  const sent = await sendViaOAuthOrFallback({
     adminUser,
     to:      user.email,
     subject: `🎉 Welcome to Click2Website! Let's build your dream website.`,
@@ -273,6 +348,10 @@ export const sendWelcomeEmail = async (user) => {
     type:    'welcome',
     userId:  user._id,
   });
+
+  if (sent) {
+    await User.findByIdAndUpdate(user._id, { $inc: { emailsSent: 1 } });
+  }
 };
 
 // ── Send Welcome SMS immediately on signup ─────────────
@@ -289,10 +368,13 @@ export const sendWelcomeSMS = async (user) => {
   }
 
   try {
+    const waFrom = `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`;
+    const waTo   = `whatsapp:${formattedPhone}`;
+
     await client.messages.create({
       body: smsBody,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to:   formattedPhone,
+      from: waFrom,
+      to:   waTo,
     });
     await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
   } catch (err) {
