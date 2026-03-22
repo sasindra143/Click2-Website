@@ -1,1 +1,0 @@
-fix(cors): Add PATCH to allowed methods to fix admin pause-automation from Netlify
