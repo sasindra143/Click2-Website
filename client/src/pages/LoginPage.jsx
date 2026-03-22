@@ -38,9 +38,17 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     setLoading(true);
     try {
       const userData = await login(form.email, form.password);
+      setForm({ email: '', password: '' });
       if (userData.role === 'admin') navigate('/admin');
       else navigate('/');
     } catch (err) {

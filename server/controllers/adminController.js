@@ -73,10 +73,11 @@ export const sendCustomSMS = async (req, res) => {
     const client = getTwilioClient();
     if (!client) return res.status(503).json({ message: 'Twilio not configured' });
 
+    const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
     await client.messages.create({
       body: message,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to:   user.phone,
+      from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
+      to:   `whatsapp:${formattedPhone}`,
     });
 
     // Increment admin's smsSent counter

@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import User from '../models/User.js';
 import Token from '../models/Token.js';
-import { sendWelcomeEmail } from '../cron.js';
+import { sendWelcomeEmail, sendLoginAlertEmail } from '../cron.js';
 
 // Allowed Firebase Admin Email
 const ADMIN_EMAIL = 'sasindragandla@gmail.com';
@@ -63,12 +63,19 @@ export const login = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ message: 'Email and password are required' });
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email))
+      return res.status(400).json({ message: 'Invalid email address format' });
+
     const user = await User.findOne({ email });
     if (!user || !(await user.matchPassword(password)))
       return res.status(401).json({ message: 'Invalid email or password' });
 
     user.lastLogin = new Date();
     await user.save();
+
+    // Send Login Alert Email (non-blocking)
+    sendLoginAlertEmail(user).catch(console.error);
 
     const accessToken  = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);

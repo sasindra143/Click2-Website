@@ -39,6 +39,13 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
     if (form.password.length < 6) {
       setError('Password must be at least 6 characters.');
       return;
@@ -53,12 +60,17 @@ export default function RegisterPage() {
       // register() returns user data & tokens — auto-login included
       const userData = await register(name, email, password, phone);
       setSuccess(true);
+      setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
       setTimeout(() => {
         if (userData?.role === 'admin') navigate('/admin');
         else navigate('/');
       }, 1800);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Try again.');
+      if (!err.response) {
+        setError('Server is waking up. Please wait 30 seconds and try again.');
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -22,130 +22,17 @@ const getTwilioClient = () => {
 
 // ── Professional Welcome Email Template ───────────
 const buildWelcomeEmailHtml = (user, trackingUrl) => `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4ff; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 30px rgba(0,0,0,0.08); }
-    .header { background: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%); padding: 40px 30px; text-align: center; }
-    .header h1 { color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-    .header p { color: rgba(255,255,255,0.85); font-size: 14px; margin-top: 8px; }
-    .logo { font-size: 36px; margin-bottom: 12px; }
-    .body { padding: 36px 30px; }
-    .greeting { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 16px; }
-    .message { font-size: 15px; color: #4a4a6a; line-height: 1.75; margin-bottom: 24px; }
-    .highlight-box { background: linear-gradient(135deg, #f0e8ff, #e8f0ff); border-left: 4px solid #7c3aed; border-radius: 8px; padding: 20px 24px; margin-bottom: 28px; }
-    .highlight-box h3 { color: #5b21b6; font-size: 15px; margin-bottom: 14px; font-weight: 700; }
-    .feature-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-    .feature-icon { font-size: 22px; flex-shrink: 0; }
-    .feature-text h4 { font-size: 14px; color: #1a1a2e; font-weight: 700; margin-bottom: 2px; }
-    .feature-text p { font-size: 13px; color: #6b7280; line-height: 1.5; }
-    .cta-btn { display: block; background: linear-gradient(135deg, #7c3aed, #3b82f6); color: #ffffff !important; text-align: center; padding: 16px 32px; border-radius: 10px; font-size: 16px; font-weight: 700; text-decoration: none; margin: 28px 0; }
-    .divider { height: 1px; background: #e5e7eb; margin: 24px 0; }
-    .credentials-box { background: #f8faff; border: 1px solid #e0e7ff; border-radius: 10px; padding: 18px 24px; margin-bottom: 24px; }
-    .credentials-box h3 { color: #374151; font-size: 14px; font-weight: 700; margin-bottom: 12px; }
-    .cred-row { display: flex; gap: 8px; margin-bottom: 8px; }
-    .cred-label { font-size: 13px; color: #6b7280; width: 80px; flex-shrink: 0; }
-    .cred-value { font-size: 13px; color: #1f2937; font-weight: 600; word-break: break-all; }
-    .footer { background: #fafafa; padding: 24px 30px; text-align: center; border-top: 1px solid #e5e7eb; }
-    .footer p { font-size: 12px; color: #9ca3af; line-height: 1.6; }
-    .social-links { margin: 12px 0; }
-    .social-links a { color: #7c3aed; text-decoration: none; font-size: 18px; margin: 0 6px; }
-    @media (max-width: 600px) {
-      .body { padding: 24px 16px; }
-      .header { padding: 28px 16px; }
-      .feature-row { flex-direction: column; gap: 6px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <div class="logo">🌐</div>
-      <h1>Click2Website</h1>
-      <p>Premium Web Development & Automation Services</p>
-    </div>
-    <div class="body">
-      <p class="greeting">Hii ${user.name.split(' ')[0]}, Welcome to Click2Website! 🎉</p>
-      <p class="message">
-        You've successfully logged in and joined our exclusive community of businesses thriving online.
-        Your journey to a stunning, high-performance website starts right now.
-      </p>
-
-      <div class="highlight-box">
-        <h3>✨ What's included in your project:</h3>
-        <div class="feature-row">
-          <div class="feature-icon">🔍</div>
-          <div class="feature-text">
-            <h4>SEO-Optimized Architecture</h4>
-            <p>Your website will be structured from day one for maximum search engine visibility and organic growth.</p>
-          </div>
-        </div>
-        <div class="feature-row">
-          <div class="feature-icon">📱</div>
-          <div class="feature-text">
-            <h4>Fully Responsive Design</h4>
-            <p>Pixel-perfect on every device — mobile, tablet, and desktop — ensuring zero visitors are lost.</p>
-          </div>
-        </div>
-        <div class="feature-row">
-          <div class="feature-icon">📈</div>
-          <div class="feature-text">
-            <h4>+40% Traffic Growth</h4>
-            <p>Our data-driven approach and performance optimizations are proven to increase organic traffic by 40%+.</p>
-          </div>
-        </div>
-        <div class="feature-row">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-text">
-            <h4>Blazing Fast Performance</h4>
-            <p>Optimized to score 95+ on Google PageSpeed — a key ranking factor that your competitors lack.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="credentials-box">
-        <h3>🔐 Your Login Details (Keep this safe)</h3>
-        <div class="cred-row">
-          <span class="cred-label">Email:</span>
-          <span class="cred-value">${user.email}</span>
-        </div>
-        <div class="cred-row">
-          <span class="cred-label">Portal:</span>
-          <span class="cred-value">https://click2website.netlify.app/login</span>
-        </div>
-        <div class="cred-row">
-          <span class="cred-label">Support:</span>
-          <span class="cred-value">sasindragandla@gmail.com</span>
-        </div>
-      </div>
-
-      <a href="https://click2website.netlify.app/contact" class="cta-btn">🚀 Get Started — Consult with Our Team</a>
-
-      <div class="divider"></div>
-      <p class="message" style="font-size:14px; color:#6b7280;">
-        Our team typically responds within 24 hours. If you have any immediate questions, you can reach us directly at
-        <a href="mailto:sasindragandla@gmail.com" style="color:#7c3aed;">sasindragandla@gmail.com</a> or call us at
-        <a href="tel:+919959732476" style="color:#7c3aed;">+91 9959732476</a>.
-      </p>
-    </div>
-    <div class="footer">
-      <div class="social-links">
-        <a href="https://click2website.netlify.app">🌐</a>
-      </div>
-      <p>© 2026 Click2Website. All rights reserved.</p>
-      <p>Hyderabad, India — Built with ❤️</p>
-      <p style="font-size:11px; margin-top:8px;">You're receiving this because you registered at click2website.netlify.app</p>
-    </div>
-  </div>
+<div style="font-family: Arial, sans-serif; font-size: 16px; color: #000;">
+  <p><strong>Hi Welcome, ${user.name}! 🚀</strong></p>
+  <br/>
+  <p>You have successfully registered on our website.</p>
+  <br/>
+  <p>You are very close to getting your requirement website! Our team will review your details and get in touch with you shortly to build your dream project.</p>
+  <br/><br/>
+  <p>Cheers,<br/>The Web Development Team</p>
   <!-- Tracking Pixel -->
   <img src="${trackingUrl}" width="1" height="1" alt="" style="display:none;" />
-</body>
-</html>
+</div>
 `;
 
 // ── Follow-up Email Template (3-hour loop) ─────────
@@ -256,16 +143,14 @@ cron.schedule('0 * * * *', async () => {
         if (client) {
           try {
             const smsBody =
-              `Hi ${user.name.split(' ')[0]}! 👋 This is Click2Website.\n\n` +
-              `We sent you a welcome email but it seems you missed it.\n` +
-              `Your SEO-optimized, responsive website can increase your traffic by 40%+!\n\n` +
-              `Let's get started: https://click2website.netlify.app/contact\n\n` +
-              `Reply STOP to opt out.`;
+              `Hi ${user.name.split(' ')[0]}! 👋 Welcome to Click2Website! ` +
+              `Let's get started: https://click2website.netlify.app`;
 
+            const formattedPhone = user.phone.startsWith('+') ? user.phone : '+' + user.phone;
             await client.messages.create({
               body: smsBody,
-              from: process.env.TWILIO_PHONE_NUMBER,
-              to:   user.phone,
+              from: `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`,
+              to:   `whatsapp:${formattedPhone}`,
             });
 
             user.smsFollowupSent = true;
@@ -276,6 +161,7 @@ cron.schedule('0 * * * *', async () => {
           }
         }
       }
+
     }
 
     console.log(`✅ [CRON] Automation complete. Processed ${unengagedUsers.length} unengaged users.`);
@@ -293,12 +179,42 @@ export const sendWelcomeEmail = async (user) => {
     await transporter.sendMail({
       from:    `"Click2Website Team" <${process.env.PLATFORM_EMAIL}>`,
       to:      user.email,
-      subject: `🎉 Hii ${user.name.split(' ')[0]}, Welcome to Click2Website — Your Journey Starts Now!`,
+      subject: `🎉 Welcome to Click2Website! Let's build your dream website.`,
       html:    buildWelcomeEmailHtml(user, trackingUrl),
     });
     console.log(`✉️  Welcome email sent to ${user.email}`);
   } catch (err) {
     console.error('❌ Welcome email failed:', err.message);
+  }
+};
+
+// ── Send Login Alert Email on login ───────
+export const sendLoginAlertEmail = async (user) => {
+  if (!process.env.PLATFORM_EMAIL || !process.env.PLATFORM_EMAIL_PASSWORD) return;
+  try {
+    await transporter.sendMail({
+      from:    `"Click2Website Security" <${process.env.PLATFORM_EMAIL}>`,
+      to:      user.email,
+      subject: `🚨 New Login to your Click2Website Account`,
+      html: `
+        <div style="font-family:Arial,sans-serif;padding:24px;max-width:500px;margin:0 auto;border:1px solid #e5e7eb;border-radius:12px;">
+          <h2 style="color:#1a1a2e;margin-top:0;">New Login Detected</h2>
+          <p style="color:#4b5563;line-height:1.6;">
+            Hi ${user.name.split(' ')[0]},<br><br>
+            We noticed a new login to your Click2Website account just now.
+          </p>
+          <p style="color:#4b5563;line-height:1.6;">
+            If this was you, you can safely ignore this email. If you did not authorize this login, please contact us immediately or reset your password.
+          </p>
+          <p style="font-size:12px;color:#9ca3af;margin-top:30px;border-top:1px solid #e5e7eb;padding-top:16px;">
+            © ${new Date().getFullYear()} Click2Website Security
+          </p>
+        </div>
+      `,
+    });
+    console.log(`✉️  Login alert email sent to ${user.email}`);
+  } catch (err) {
+    console.error('❌ Login alert email failed:', err.message);
   }
 };
 
