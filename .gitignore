@@ -1,24 +1,24 @@
 # Dependencies
 node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build Output
+dist/
+client/dist/
+dist-ssr/
+*.local
 
 # Environment Variables
 .env
 .env.local
 .env.*.local
-
-# Build Output
-dist/
-dist-ssr/
-*.local
+server/.env
 
 # Logs
 logs
 *.log
 npm-debug.log*
-
-# Server specifics
-server/.env
-server/node_modules/
 
 # Editor files
 .vscode/
@@ -26,9 +26,3 @@ server/node_modules/
 *.swp
 *.swo
 .DS_Store
-
-
-.env
-server/.env".env" 
-".env.local" 
-".env.*.local" 
