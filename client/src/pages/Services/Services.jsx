@@ -51,25 +51,25 @@ const CLIENT_WORK = [
   { 
     name: 'PR Skillverse', 
     url: 'https://www.prskillverse.com', 
-    img: '/ai-images/portfolio_pr_skillverse_1774054598085.png',
+    img: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=800&q=80',
     desc: 'Advanced E-Learning (LMS) Platform for tech skills.'
   },
   { 
     name: '360 Vertex Solutions', 
     url: 'https://www.360vertexsolutions.com', 
-    img: '/ai-images/portfolio_vertex_solutions_1774054612593.png',
+    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
     desc: 'Corporate Agency Website providing digital solutions.'
   },
   { 
     name: 'Vaakya Creations', 
     url: 'https://vaakya-creations.netlify.app', 
-    img: '/ai-images/portfolio_vaakya_creations_1774054627953.png',
+    img: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80',
     desc: 'Creative Portfolio showcasing media and art pieces.'
   },
   { 
     name: 'Sasindra Portfolio', 
     url: 'https://sasindraportfolio.netlify.app/', 
-    img: '/ai-images/service_business_1774054704656.png', // Reusing the ultra-sleek business UI
+    img: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&q=80&w=800',
     desc: 'Interactive Personal Web Developer Portfolio.'
   },
 ];

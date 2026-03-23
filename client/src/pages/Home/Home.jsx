@@ -9,6 +9,7 @@ import Tilt from 'react-parallax-tilt';
 
 import Navbar from '../../components/Navbar/Navbar';
 import Footer from '../../components/Footer/Footer';
+import heroImg from '../../assets/hero.png';
 import './Home.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -24,19 +25,19 @@ const PORTFOLIO = [
   { 
     name: 'PR Skillverse', 
     url: 'https://www.prskillverse.com', 
-    img: '/ai-images/portfolio_pr_skillverse_1774054598085.png',
+    img: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=800&q=80',
     desc: 'Advanced E-Learning (LMS) Platform for tech skills.'
   },
   { 
     name: '360 Vertex Solutions', 
     url: 'https://www.360vertexsolutions.com', 
-    img: '/ai-images/portfolio_vertex_solutions_1774054612593.png',
+    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
     desc: 'Corporate Agency Website providing digital solutions.'
   },
   { 
     name: 'Vaakya Creations', 
     url: 'https://vaakya-creations.netlify.app', 
-    img: '/ai-images/portfolio_vaakya_creations_1774054627953.png',
+    img: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800&q=80',
     desc: 'Creative Portfolio showcasing media and art pieces.'
   },
 ];
@@ -60,42 +61,47 @@ export default function Home() {
     gsap.from('.hero-btns', { y: 20, opacity: 0, duration: 1, ease: 'power3.out', delay: 0.6 });
     gsap.from('.hero-trust span', { y: 15, opacity: 0, duration: 0.6, stagger: 0.1, delay: 0.8 });
     
+    // Smooth Floating Animation for cards
     gsap.to('.hero-float', {
-      y: -15, duration: 2, yoyo: true, repeat: -1, ease: 'sine.inOut', stagger: 0.5,
+      y: -20,
+      duration: 2.5,
+      yoyo: true,
+      repeat: -1,
+      ease: 'sine.inOut',
+      stagger: {
+        amount: 1,
+        from: 'random'
+      }
     });
 
-    gsap.utils.toArray('.section-header').forEach((el) => {
-      gsap.from(el, { scrollTrigger: { trigger: el, start: 'top 85%' }, y: 50, opacity: 0, duration: 1, ease: 'power3.out' });
+    // Reveal animations for all sections
+    gsap.utils.toArray('section').forEach((section) => {
+      gsap.from(section.querySelector('.section-header'), {
+        scrollTrigger: {
+          trigger: section,
+          start: 'top 80%',
+          toggleActions: 'play none none reverse'
+        },
+        y: 40,
+        opacity: 0,
+        duration: 1,
+        ease: 'power3.out'
+      });
     });
 
     gsap.from('.feature-card', {
       scrollTrigger: { trigger: '.features-grid', start: 'top 80%' },
-      y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.2)'
+      y: 60, opacity: 0, duration: 0.8, stagger: 0.1, ease: 'back.out(1.2)'
     });
 
     gsap.from('.portfolio-card-wrap', {
       scrollTrigger: { trigger: '.portfolio-grid', start: 'top 80%' },
-      y: 80, opacity: 0, duration: 0.8, stagger: 0.2, ease: 'power2.out'
+      scale: 0.9, opacity: 0, duration: 1, stagger: 0.2, ease: 'power2.out'
     });
 
     gsap.from('.stat-item', {
       scrollTrigger: { trigger: '.stats-row', start: 'top 85%' },
-      scale: 0.5, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out'
-    });
-
-    gsap.from('.step-card', {
-      scrollTrigger: { trigger: '.steps-row', start: 'top 80%' },
-      x: -50, opacity: 0, duration: 0.8, stagger: 0.2, ease: 'power3.out'
-    });
-
-    gsap.from('.testimonial-card', {
-      scrollTrigger: { trigger: '.testimonials-grid', start: 'top 80%' },
-      y: 60, opacity: 0, duration: 0.8, stagger: 0.15, ease: 'back.out(1.2)'
-    });
-
-    gsap.from('.cta-card', {
-      scrollTrigger: { trigger: '.cta-section', start: 'top 85%' },
-      y: 50, opacity: 0, scale: 0.95, duration: 1, ease: 'power3.out'
+      scale: 0.5, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'elastic.out(1, 0.75)'
     });
 
   }, { scope: container });
@@ -110,8 +116,12 @@ export default function Home() {
       <Navbar />
 
       {/* ── HERO ── */}
-      <section className="hero" id="home" ref={(el) => (sections.current[0] = el)}>
-        <div className="hero-bg" />
+      <section className="hero" id="home">
+        <div className="hero-bg-wrapper">
+          <div className="hero-bg" />
+          <div className="bg-glow blob-1" />
+          <div className="bg-glow blob-2" />
+        </div>
         <div className="hero-content">
           <div className="hero-badge">🚀 Empowering 500+ Businesses Online</div>
           <h1>
@@ -139,10 +149,10 @@ export default function Home() {
         <div className="hero-visual perspective-container">
           <Tilt tiltMaxAngleX={10} tiltMaxAngleY={10} perspective={1000} scale={1.02} transitionSpeed={2000} gyroscope={true}>
             <div style={{ position: 'relative' }}>
-              <img src="/hero-bg.png" alt="Click2Website Development" loading="eager" className="hero-main-img" />
-              <div className="hero-float card1" style={{ position: 'absolute', top: '10%', left: '-10%' }}>🏥 Hospital Portal Live</div>
-              <div className="hero-float card2" style={{ position: 'absolute', bottom: '20%', right: '-10%' }}>🎓 LMS Site Deployed</div>
-              <div className="hero-float card3" style={{ position: 'absolute', top: '50%', left: '40%' }}>📈 +40% Traffic</div>
+              <img src={heroImg} alt="Click2Website Development" loading="eager" className="hero-main-img" />
+              <div className="hero-float card1">🏥 Hospital Portal Live</div>
+              <div className="hero-float card2">🎓 LMS Site Deployed</div>
+              <div className="hero-float card3">📈 +40% Traffic</div>
             </div>
           </Tilt>
         </div>
