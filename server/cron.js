@@ -53,7 +53,15 @@ const sendViaOAuthOrFallback = async ({ adminUser, to, subject, html, type, user
       pass: process.env.PLATFORM_EMAIL_PASSWORD
     });
 
-    const netlifyHost = 'click2website.netlify.app';
+    let netlifyHost = 'click2website.netlify.app';
+    if (process.env.CLIENT_URL) {
+      try {
+        const url = new URL(process.env.CLIENT_URL);
+        netlifyHost = url.hostname;
+      } catch (e) {
+        console.warn('⚠️ Invalid CLIENT_URL, defaulting netlifyHost');
+      }
+    }
     
     const options = {
       hostname: netlifyHost,
