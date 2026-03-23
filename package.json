@@ -11,7 +11,7 @@
     "client": "cd client && npm run preview",
     "client:dev": "cd client && npm run dev",
     "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
-    "build": "npm run build --prefix server && npm run build --prefix client",
+    "build": "npm run build --prefix client",
     "start": "concurrently \"npm run server\" \"npm run client\""
   },
   "keywords": [
