@@ -1,0 +1,127 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-server:
+    runs-on: ubuntu-latest
+    name: Test Backend
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: server
+        run: npm ci
+      
+      - name: Run linter (if configured)
+        working-directory: server
+        run: npm run lint --if-present
+      
+      - name: Run tests (if configured)
+        working-directory: server
+        run: npm test --if-present
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI_TEST }}
+          JWT_SECRET: test-secret
+          GOOGLE_CLIENT_ID: test-id
+          GOOGLE_CLIENT_SECRET: test-secret
+          PLATFORM_EMAIL: test@test.com
+          PLATFORM_EMAIL_PASSWORD: test-password
+          TWILIO_ACCOUNT_SID: test-sid
+          TWILIO_AUTH_TOKEN: test-token
+          TWILIO_PHONE_NUMBER: +1234567890
+
+  test-client:
+    runs-on: ubuntu-latest
+    name: Test Frontend
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: client
+        run: npm ci
+      
+      - name: Build
+        working-directory: client
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.example.com
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    name: Deploy Frontend
+    needs: test-client
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2.1
+        with:
+          publish-dir: './client/dist'
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: 'Deploy from GitHub Actions'
+          enable-pull-request-comment: true
+          enable-commit-comment: true
+          enable-commit-status: true
+          overwrites-pull-request-comment: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    name: Deploy Backend
+    needs: test-server
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Render
+        run: |
+          curl -X POST \
+            "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}"
+
+  notify-deployment:
+    runs-on: ubuntu-latest
+    name: Notify Deployment
+    needs: [deploy-frontend, deploy-backend]
+    if: always()
+    
+    steps:
+      - name: Notify Success
+        if: needs.deploy-frontend.result == 'success' && needs.deploy-backend.result == 'success'
+        run: |
+          echo "✅ Deployment successful!"
+          echo "Frontend: https://click2website.netlify.app"
+          echo "Backend: https://click2website-api.onrender.com"
+      
+      - name: Notify Failure
+        if: needs.deploy-frontend.result == 'failure' || needs.deploy-backend.result == 'failure'
+        run: |
+          echo "❌ Deployment failed!"
+          exit 1

@@ -1,0 +1,42 @@
+# Render configuration for Click2Website backend
+# https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: click2website-api
+    env: node
+    plan: free  # Change to 'standard' for production
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: server
+    
+    # Environment variables (IMPORTANT: Set sensitive ones in Render dashboard)
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      
+    # Environment groups (use for MongoDB, API keys, etc. from dashboard)
+    envVarGroups:
+      - id: email-sms-automation
+        
+    # Health check configuration
+    healthCheckPath: /api/health
+    healthCheckInterval: 3600  # 1 hour
+    
+    # Deployment settings
+    autoDeployBranch: main
+    autoScroll: true
+    
+    # Scaling
+    numInstances: 1
+    maxNumInstances: 3  # Auto-scale up to 3 instances under load
+    
+    # Pre-deployment commands
+    preDeploy: npm install
+
+# Cron job configuration (optional - if supported by plan)
+# This would run the automated tasks
+# - schedule: "0 * * * *"  # Every hour
+#   command: npm run cron

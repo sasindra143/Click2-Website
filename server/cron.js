@@ -295,6 +295,7 @@ export const testAutomationForUser = async (userId) => {
   const user = await User.findById(userId);
   if (!user) throw new Error('User not found');
   
+  console.log(`📧 Sending test welcome email to ${user.email}`);
   const adminUser = await User.findOne({ role: 'admin' });
   const API_URL = process.env.API_URL || 'https://click2website-backend.onrender.com';
 
@@ -309,6 +310,12 @@ export const testAutomationForUser = async (userId) => {
     userId: user._id,
   });
 
+  if (emailSent) {
+    console.log(`✅ Test email marked as sent for ${user.email}`);
+  } else {
+    console.error(`❌ Failed to send test email to ${user.email}`);
+  }
+
   // 2. Send SMS Follow-up (if phone exists)
   let smsSent = false;
   if (user.phone) {
@@ -318,16 +325,22 @@ export const testAutomationForUser = async (userId) => {
     const client = getTwilioClient();
     if (client) {
       try {
+        console.log(`📱 Sending test SMS to ${formattedPhone}`);
         const waFrom = `whatsapp:${process.env.TWILIO_PHONE_NUMBER}`;
         const waTo   = `whatsapp:${formattedPhone}`;
         await client.messages.create({ body: smsBody, from: waFrom, to: waTo });
         smsSent = true;
         await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'sent' });
+        console.log(`✅ Test SMS sent successfully to ${formattedPhone}`);
       } catch (err) {
         console.error('❌ [TEST] SMS Error:', err.message);
         await SMSLog.create({ userId: user._id, to: formattedPhone, body: smsBody, type: 'auto', sentBy: 'system', status: 'failed', error: err.message });
       }
+    } else {
+      console.warn('⚠️ Twilio client not configured. SMS skipped.');
     }
+  } else {
+    console.warn('⚠️ User has no phone number. SMS skipped.');
   }
 
   return { emailSent, smsSent };
